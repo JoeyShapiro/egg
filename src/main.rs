@@ -68,33 +68,28 @@ impl Interpreter {
         }
     }
     
-    fn interpret_for_statement(&mut self, for_loop: pest::iterators::Pair<Rule>) {
-        let mut inner = for_loop.into_inner();
-        let var_name = inner.next().unwrap().as_str();
-        let limit = inner.next().unwrap().as_str().parse::<i32>().unwrap();
-        let step = inner.next().unwrap().as_str().parse::<i32>().unwrap();
-        let body = inner.next().unwrap();
-    
-        for i in (0..limit).step_by(step as usize) {
-            println!("{} = {}", var_name, i);
-            self.interpret_block(body.clone(), i);
+    fn interpret_for_statement(&mut self, for_stmt: pest::iterators::Pair<Rule>) {
+        let mut inner = for_stmt.into_inner();
+        let var_name = inner.next().unwrap().as_str().to_string();
+        let end = self.evaluate_expression(inner.next().unwrap());
+        let step = self.evaluate_expression(inner.next().unwrap());
+        let block = inner.next().unwrap();
+
+        if let (Value::Number(end), Value::Number(step)) = (end, step) {
+            let mut current = 0;
+            while current < end { // Hardcoded limit for safety
+                self.variables.insert(var_name.clone(), Value::Number(current));
+                self.interpret_block(block.clone());
+                current += step;
+            }
+        } else {
+            println!("Error: Invalid for loop parameters");
         }
     }
     
-    fn interpret_block(&mut self, block: pest::iterators::Pair<Rule>, i: i32) {
+    fn interpret_block(&mut self, block: pest::iterators::Pair<Rule>) {
         for statement in block.into_inner() {
-            match statement.as_rule() {
-                Rule::print_statement => {
-                    let content = statement.into_inner().next().unwrap().as_str();
-                    if content == "i" {
-                        println!("{}", i);
-                    } else {
-                        println!("{}", content);
-                    }
-                }
-                // Add other statement types here
-                _ => {}
-            }
+            self.interpret_statement(statement);
         }
     }
 }
@@ -121,7 +116,7 @@ fn main() {
         print 42
         print x
         for i in 10 by 2 {
-            print i
+            i
         }
     "#;
 
