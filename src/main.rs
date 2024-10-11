@@ -28,8 +28,8 @@ fn main() {
         print 42
         print x
     "#;
-    let pairs = EggParser::parse(Rule::program, input).unwrap_or_else(|e| panic!("{}", e));
 
+    let pairs = EggParser::parse(Rule::program, input).unwrap_or_else(|e| panic!("{}", e));
     for pair in pairs {
         for statement in pair.into_inner() {
             match statement.as_rule() {
@@ -37,6 +37,28 @@ fn main() {
                 _ => {}
             }
         }
+    }
+
+    // read eval print loop
+    loop {
+        // get user input
+        let mut input = String::new();
+        print!("🥚: ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        std::io::stdin().read_line(&mut input).unwrap();
+        
+        let pairs = EggParser::parse(Rule::program, &input).unwrap_or_else(|e| panic!("{}", e));
+
+        for pair in pairs {
+            for statement in pair.into_inner() {
+                match statement.as_rule() {
+                    Rule::statement => interpret_statement(statement),
+                    _ => {}
+                }
+            }
+        }
+
+        println!();
     }
 }
 
