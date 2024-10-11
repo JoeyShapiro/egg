@@ -1,7 +1,12 @@
 program = { SOI ~ statement* ~ EOI }
-statement = { print_statement }
+statement = { print_statement | for_statement | expression | standalone_identifier }
 print_statement = { "print" ~ expression }
-expression = { string | number | identifier }
+for_statement = { "for" ~ identifier ~ "in" ~ expression ~ "by" ~ expression ~ block }
+block = { "{" ~ statement* ~ "}" }
+expression = { string | number | identifier | binary_operation }
+binary_operation = { term ~ (operator ~ term)+ }
+term = { string | number | identifier | "(" ~ expression ~ ")" }
+operator = { "+" | "-" | "*" | "/" }
 string = ${ "\"" ~ inner_string ~ "\"" }
 inner_string = @{ char* }
 char = {
@@ -10,5 +15,6 @@ char = {
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 number = @{ ASCII_DIGIT+ }
+standalone_identifier = @{ identifier }
 identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
