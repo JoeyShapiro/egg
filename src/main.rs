@@ -134,7 +134,7 @@ impl std::fmt::Display for Value {
             Value::Number(n) => write!(f, "{}", n),
             Value::Array(arr) => {
                 let elements: Vec<String> = arr.iter().map(|v| v.to_string()).collect();
-                write!(f, "[{}]", elements.join(", "))
+                write!(f, "[ {} ]", elements.join(" "))
             }
         }
     }
@@ -150,7 +150,7 @@ fn main() {
             i
         }
 
-        arr = [ 1, 2, 3 ]
+        arr = [ 1 2 34 ]
         print arr
     "#;
 
