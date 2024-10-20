@@ -32,12 +32,20 @@ impl Interpreter {
     fn interpret_statement(&mut self, statement: pest::iterators::Pair<Rule>) {
         for inner_pair in statement.into_inner() {
             match inner_pair.as_rule() {
+                Rule::assignment => self.interpret_assignment(inner_pair),
                 Rule::print_statement => self.interpret_print_statement(inner_pair),
                 Rule::for_statement => self.interpret_for_statement(inner_pair),
                 Rule::standalone_identifier => self.print_variable(inner_pair),
                 _ => {}
             }
         }
+    }
+
+    fn interpret_assignment(&mut self, assignment: pest::iterators::Pair<Rule>) {
+        let mut inner = assignment.into_inner();
+        let var_name = inner.next().unwrap().as_str().to_string();
+        let value = self.evaluate_expression(inner.next().unwrap());
+        self.variables.insert(var_name, value);
     }
     
     fn print_variable(&mut self, identifier: pest::iterators::Pair<Rule>) {
@@ -60,9 +68,27 @@ impl Interpreter {
             Rule::expression => self.evaluate_expression(expr.into_inner().next().unwrap()),
             Rule::string => Value::String(expr.into_inner().as_str().to_string()),
             Rule::number => Value::Number(expr.as_str().parse().unwrap()),
+            Rule::array => {
+                let elements: Vec<Value> = expr.into_inner()
+                    .map(|e| self.evaluate_expression(e))
+                    .collect();
+                
+                if elements.is_empty() {
+                    Value::Array(vec![])
+                } else {
+                    if elements.iter().all(|_e| true) {
+                        Value::Array(elements)
+                    } else {
+                        Value::String("Error: Array elements must be of the same type".to_string())
+                    }
+                }
+            },
             Rule::identifier => {
                 // In a real interpreter, you would look up the variable value here
-                Value::String(format!("Variable: {}", expr.as_str()))
+                // Value::String(format!("Variable: {}", expr.as_str()))
+                self.variables.get(expr.as_str())
+                    .cloned()
+                    .unwrap_or_else(|| Value::String(format!("Undefined variable: {}", expr.as_str())))
             },
             _ => Value::String("Error: Unknown expression type".to_string()),
         }
@@ -98,6 +124,7 @@ impl Interpreter {
 enum Value {
     String(String),
     Number(i64),
+    Array(Vec<Value>),
 }
 
 impl std::fmt::Display for Value {
@@ -105,6 +132,10 @@ impl std::fmt::Display for Value {
         match self {
             Value::String(s) => write!(f, "{}", s),
             Value::Number(n) => write!(f, "{}", n),
+            Value::Array(arr) => {
+                let elements: Vec<String> = arr.iter().map(|v| v.to_string()).collect();
+                write!(f, "[{}]", elements.join(", "))
+            }
         }
     }
 }
@@ -118,6 +149,9 @@ fn main() {
         for i in 10 by 2 {
             i
         }
+
+        arr = [ 1, 2, 3 ]
+        print arr
     "#;
 
     let mut interpreter = Interpreter::new();

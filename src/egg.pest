@@ -1,11 +1,13 @@
 program = { SOI ~ statement* ~ EOI }
-statement = { print_statement | for_statement | standalone_identifier | expression }
+statement = { assignment | print_statement | for_statement | standalone_identifier | expression }
+assignment = { identifier ~ "=" ~ expression }
 print_statement = { "print" ~ expression }
 for_statement = { "for" ~ identifier ~ "in" ~ expression ~ "by" ~ expression ~ block }
 block = { "{" ~ statement* ~ "}" }
-expression = { string | number | identifier | binary_operation }
+expression = { array | string | number | identifier | binary_operation }
+array = { "[" ~ (expression ~ ("," ~ expression)*)? ~ "]" }
 binary_operation = { term ~ (operator ~ term)+ }
-term = { string | number | identifier | "(" ~ expression ~ ")" }
+term = { array | string | number | identifier | "(" ~ expression ~ ")" }
 operator = { "+" | "-" | "*" | "/" }
 string = ${ "\"" ~ inner_string ~ "\"" }
 inner_string = @{ char* }
