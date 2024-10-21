@@ -10,6 +10,11 @@ struct Interpreter {
     variables: std::collections::HashMap<String, Value>,
 }
 
+// TODO
+// - handle vars better with sub style
+// - handle arrays better and allow assignment
+// - modify array instead of create new one
+
 impl Interpreter {
     fn new() -> Self {
         Self {
@@ -96,20 +101,53 @@ impl Interpreter {
     
     fn interpret_for_statement(&mut self, for_stmt: pest::iterators::Pair<Rule>) {
         let mut inner = for_stmt.into_inner();
-        let var_name = inner.next().unwrap().as_str().to_string();
-        let end = self.evaluate_expression(inner.next().unwrap());
-        let step = self.evaluate_expression(inner.next().unwrap());
-        let block = inner.next().unwrap();
+        let iter_name = inner.next().unwrap().as_str().to_string();
+        let mutator = inner.next().unwrap().as_str();
+        let ender = inner.next().unwrap();
+        let end_name = ender.as_str();
+        let end = self.evaluate_expression(ender);
 
-        if let (Value::Number(end), Value::Number(step)) = (end, step) {
-            let mut current = 0;
-            while current < end { // Hardcoded limit for safety
-                self.variables.insert(var_name.clone(), Value::Number(current));
-                self.interpret_block(block.clone());
-                current += step;
-            }
-        } else {
-            println!("Error: Invalid for loop parameters");
+        // Check if "by" clause is present
+        let (step, block) = match inner.next() {
+            Some(pair) if pair.as_rule() == Rule::expression => {
+                // "by" clause is present
+                (self.evaluate_expression(pair), inner.next().unwrap())
+            },
+            Some(block_pair) => {
+                // No "by" clause, use default step of 1
+                (Value::Number(1), block_pair)
+            },
+            None => panic!("Unexpected end of for loop statement"),
+        };
+
+        match mutator {
+            "in" => {
+                if let (Value::Number(end), Value::Number(step)) = (end, step) {
+                    let mut current = 0;
+                    while current < end {
+                        self.variables.insert(iter_name.clone(), Value::Number(current));
+                        self.interpret_block(block.clone());
+                        current += step;
+                    }
+                } else {
+                    println!("Error: Invalid for loop parameters");
+                }
+            },
+            "of" => {
+                if let Value::Array(arr) = end {
+                    let mut arr_new = vec![];
+                    for element in arr {
+                        self.variables.insert(iter_name.clone(), element);
+                        self.interpret_block(block.clone());
+                        arr_new.push(self.variables.get(&iter_name).unwrap().clone());
+                    }
+                    self.variables.insert(end_name.to_string(), Value::Array(arr_new));
+                } else {
+                    println!("Error: Invalid for loop parameters");
+                }
+            },
+            _ => println!("Error: Invalid for loop mutator"),
+            
         }
     }
     
@@ -152,6 +190,11 @@ fn main() {
 
         arr = [ 1 2 34 ]
         print arr
+
+        for i of arr {
+            i = 0
+        }
+        arr
     "#;
 
     let mut interpreter = Interpreter::new();

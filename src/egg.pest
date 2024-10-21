@@ -2,7 +2,8 @@ program = { SOI ~ statement* ~ EOI }
 statement = { assignment | print_statement | for_statement | standalone_identifier | expression }
 assignment = { identifier ~ "=" ~ expression }
 print_statement = { "print" ~ expression }
-for_statement = { "for" ~ identifier ~ "in" ~ expression ~ "by" ~ expression ~ block }
+for_statement = { "for" ~ identifier ~ for_mutator ~ expression ~ ("by" ~ expression)? ~ block }
+for_mutator = { "in" | "of" }
 block = { "{" ~ statement* ~ "}" }
 expression = { array | string | number | identifier | binary_operation }
 array = { "[" ~ (expression ~ (expression)*)? ~ "]" }
