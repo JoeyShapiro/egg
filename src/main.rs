@@ -70,7 +70,7 @@ impl Interpreter {
     fn evaluate_expression(&mut self, expr: pest::iterators::Pair<Rule>) -> Value {
         // println!("Evaluating: {:?}", expr);
         match expr.as_rule() {
-            Rule::expression => self.evaluate_expression(expr.into_inner().next().unwrap()),
+            Rule::expression | Rule::term => self.evaluate_expression(expr.into_inner().next().unwrap()),
             Rule::string => Value::String(expr.into_inner().as_str().to_string()),
             Rule::number => Value::Number(expr.as_str().parse().unwrap()),
             Rule::array => {
@@ -94,6 +94,22 @@ impl Interpreter {
                 self.variables.get(expr.as_str())
                     .cloned()
                     .unwrap_or_else(|| Value::String(format!("Undefined variable: {}", expr.as_str())))
+            },
+            Rule::binary_operation => {
+                let mut parts = expr.into_inner();
+                let mut result = self.evaluate_expression(parts.next().unwrap());
+                
+                while let (Some(op), Some(right)) = (parts.next(), parts.next()) {
+                    let right_val = self.evaluate_expression(right);
+                    result = match (result, op.as_str(), right_val) {
+                        (Value::Number(a), "+", Value::Number(b)) => Value::Number(a + b),
+                        (Value::Number(a), "-", Value::Number(b)) => Value::Number(a - b),
+                        (Value::Number(a), "*", Value::Number(b)) => Value::Number(a * b),
+                        (Value::Number(a), "/", Value::Number(b)) => Value::Number(a / b),
+                        _ => Value::String("Error: Invalid operation".to_string()),
+                    };
+                }
+                result
             },
             _ => Value::String("Error: Unknown expression type".to_string()),
         }
