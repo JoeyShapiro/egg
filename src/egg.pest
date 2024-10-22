@@ -20,4 +20,17 @@ char = {
 number = @{ ASCII_DIGIT+ }
 identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 standalone_identifier = @{ identifier }
-WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+COMMENT = _{ 
+    "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE    // Single-line comment
+    | "/*" ~ (!"*/" ~ ANY)* ~ "*/"        // Multi-line comment
+}
+
+WHITESPACE = _{ 
+    " " 
+    | "\t" 
+    | NEWLINE 
+    | COMMENT 
+}
+
+NEWLINE = _{ "\r" | "\n" | "\r\n" }
