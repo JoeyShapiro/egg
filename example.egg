@@ -1,0 +1,14 @@
+print "Hello, World!"
+print 42
+print x
+for i in 10 by 2 {
+    i
+}
+
+arr = [ 1 2 34 ]
+print arr
+
+for i of arr {
+    i = 0
+}
+arr

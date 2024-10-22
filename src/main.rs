@@ -180,45 +180,26 @@ impl std::fmt::Display for Value {
 
 fn main() {
     // let input = "for i in 10 by 2 { print(i); }";
-    let input = r#"
-        print "Hello, World!"
-        print 42
-        print x
-        for i in 10 by 2 {
-            i
-        }
-
-        arr = [ 1 2 34 ]
-        print arr
-
-        for i of arr {
-            i = 0
-        }
-        arr
-    "#;
-
     let mut interpreter = Interpreter::new();
-    interpreter.interpret(input);
-
-    // // read eval print loop
-    // loop {
-    //     // get user input
-    //     let mut input = String::new();
-    //     print!("🥚: ");
-    //     std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    //     std::io::stdin().read_line(&mut input).unwrap();
+    
+    // get file from args
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() > 1 {
+        let filename = &args[1];
+        let input = std::fs::read_to_string(filename).unwrap();
+        interpreter.interpret(&input);
+    } else {
+        // read eval print loop
+        loop {
+            // get user input
+            let mut input = String::new();
+            print!("🥚: ");
+            std::io::Write::flush(&mut std::io::stdout()).unwrap();
+            std::io::stdin().read_line(&mut input).unwrap();
         
-    //     let pairs = EggParser::parse(Rule::program, &input).unwrap_or_else(|e| panic!("{}", e));
+            interpreter.interpret(&input);
 
-    //     for pair in pairs {
-    //         for statement in pair.into_inner() {
-    //             match statement.as_rule() {
-    //                 Rule::statement => interpret_statement(statement),
-    //                 _ => {}
-    //             }
-    //         }
-    //     }
-
-    //     println!();
-    // }
+            println!();
+        }
+    }
 }
