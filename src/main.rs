@@ -1,4 +1,3 @@
-// File: src/main.rs
 use pest::Parser;
 use pest_derive::Parser;
 
@@ -14,6 +13,9 @@ struct Interpreter {
 // - handle vars better with sub style
 // - handle arrays better and allow assignment
 // - modify array instead of create new one
+// - bitwise with block
+// - semicolon optional or print if at end
+// - piping
 
 impl Interpreter {
     fn new() -> Self {
@@ -41,6 +43,11 @@ impl Interpreter {
                 Rule::print_statement => self.interpret_print_statement(inner_pair),
                 Rule::for_statement => self.interpret_for_statement(inner_pair),
                 Rule::standalone_identifier => self.print_variable(inner_pair),
+                Rule::expression => {
+                    let ans = self.evaluate_expression(inner_pair);
+                    self.variables.insert("ans".to_string(), ans.clone());
+                    println!("ans = {}", ans);
+                }
                 _ => {}
             }
         }
@@ -106,6 +113,7 @@ impl Interpreter {
                         (Value::Number(a), "-", Value::Number(b)) => Value::Number(a - b),
                         (Value::Number(a), "*", Value::Number(b)) => Value::Number(a * b),
                         (Value::Number(a), "/", Value::Number(b)) => Value::Number(a / b),
+                        (Value::Number(a), "**", Value::Number(b)) => Value::Number(a.pow(b as u32)),
                         _ => Value::String("Error: Invalid operation".to_string()),
                     };
                 }

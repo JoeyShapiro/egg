@@ -7,9 +7,16 @@ for_mutator = { "in" | "of" }
 block = { "{" ~ statement* ~ "}" }
 expression = { array | string | binary_operation | number | identifier }
 array = { "[" ~ (expression ~ (expression)*)? ~ "]" }
-binary_operation = { term ~ (operator ~ term)+ }
+binary_operation = { term ~ (binary_operator ~ term)+ }
 term = { array | string | number | identifier | "(" ~ expression ~ ")" }
-operator = { "+" | "-" | "*" | "/" }
+binary_operator = { 
+    "==" | "!=" | "<" | "<=" | ">" | ">=" | // comparison
+    "&&" | "||" | "and" | "or" | // logical
+    "%" | "**" | "@" | // advanced arithmetic ??? 
+    "&" | "|" | "^" | // bitwise
+    "+" | "-" | "*" | "/" // basic arithmetic
+}
+// unary_operator = { "!" | "not" | "++" }
 string = ${ "\"" ~ inner_string ~ "\"" }
 inner_string = @{ char* }
 char = {
