@@ -24,7 +24,7 @@ char = {
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
-number = @{ ASCII_DIGIT+ }
+number = @{ ASCII_DIGIT+ ~ ("b"~ASCII_DIGIT+)? }
 identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 standalone_identifier = @{ identifier }
 

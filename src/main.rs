@@ -7,6 +7,7 @@ struct EggParser;
 
 struct Interpreter {
     variables: std::collections::HashMap<String, Value>,
+    base: u32, // you dont need this many, but rust wants this
 }
 
 // TODO
@@ -21,6 +22,7 @@ impl Interpreter {
     fn new() -> Self {
         Self {
             variables: std::collections::HashMap::new(),
+            base: 10,
         }
     }
 
@@ -79,7 +81,20 @@ impl Interpreter {
         match expr.as_rule() {
             Rule::expression | Rule::term => self.evaluate_expression(expr.into_inner().next().unwrap()),
             Rule::string => Value::String(expr.into_inner().as_str().to_string()),
-            Rule::number => Value::Number(expr.as_str().parse().unwrap()),
+            Rule::number => {
+                // split on b, should only be one
+                let val = expr.as_str().split("b").collect::<Vec<&str>>();
+                let (num, base) = match val.len() {
+                    1 => (val[0], self.base),
+                    2 => (val[0], val[1].parse().unwrap()),
+                    _ => panic!("Invalid number"),
+                };
+
+                // convert to base 10
+                let num = i64::from_str_radix(num, base).unwrap();
+
+                Value::Number(num)
+            },
             Rule::array => {
                 let elements: Vec<Value> = expr.into_inner()
                     .map(|e| self.evaluate_expression(e))

@@ -9,7 +9,16 @@ y = x + 1
 x
 y
 
+// pemdas test
 pemdas=6 / 2 * (1 + 2)
 pemdas
 
+// advanced math
 2**4
+
+// setting the base is a little different
+i = 10b10 + 10b16
+print i
+
+// but you can do any dumb stuff you want
+print 500b20
