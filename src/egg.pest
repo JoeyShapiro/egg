@@ -1,7 +1,7 @@
 program = { SOI ~ statement* ~ EOI }
-statement = { assignment | print_statement | for_statement | standalone_identifier | expression }
+statement = { assignment | for_statement | call | expression }
 assignment = { identifier ~ "=" ~ expression }
-print_statement = { "print" ~ expression }
+call = ${ identifier ~ ( " " ~ ( identifier | expression ) )+ }
 for_statement = { "for" ~ identifier ~ for_mutator ~ expression ~ ("by" ~ expression)? ~ block }
 for_mutator = { "in" | "of" }
 block = { "{" ~ statement* ~ "}" }
@@ -26,7 +26,6 @@ char = {
 }
 number = @{ ASCII_DIGIT+ ~ ("b"~ASCII_DIGIT+)? }
 identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
-standalone_identifier = @{ identifier }
 
 COMMENT = _{ 
     "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE    // Single-line comment

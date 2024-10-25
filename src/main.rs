@@ -17,6 +17,9 @@ struct Interpreter {
 // - bitwise with block
 // - semicolon optional or print if at end
 // - piping
+// - for start
+// - load from as
+// - 0 < x < 10
 
 impl Interpreter {
     fn new() -> Self {
@@ -42,9 +45,9 @@ impl Interpreter {
         for inner_pair in statement.into_inner() {
             match inner_pair.as_rule() {
                 Rule::assignment => self.interpret_assignment(inner_pair),
-                Rule::print_statement => self.interpret_print_statement(inner_pair),
+                Rule::call => self.interpret_call(inner_pair),
                 Rule::for_statement => self.interpret_for_statement(inner_pair),
-                Rule::standalone_identifier => self.print_variable(inner_pair),
+                // Rule::standalone_identifier => self.print_variable(inner_pair),å
                 Rule::expression => {
                     let ans = self.evaluate_expression(inner_pair);
                     self.variables.insert("ans".to_string(), ans.clone());
@@ -70,10 +73,16 @@ impl Interpreter {
         }
     }
     
-    fn interpret_print_statement(&mut self, print_stmt: pest::iterators::Pair<Rule>) {
-        let expression = print_stmt.into_inner().next().unwrap();
+    fn interpret_call(&mut self, stmt: pest::iterators::Pair<Rule>) {
+        let mut inner = stmt.into_inner();
+        let func_name = inner.next().unwrap().as_str();
+        let expression = inner.next().unwrap();
         let result = self.evaluate_expression(expression);
-        println!("{}", result);
+        // println!("{func_name} {}", result);
+        match func_name {
+            "print" => println!("{}", result),
+            _ => println!("Error: Unknown function"),
+        }
     }
     
     fn evaluate_expression(&mut self, expr: pest::iterators::Pair<Rule>) -> Value {
