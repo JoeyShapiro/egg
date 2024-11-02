@@ -1,0 +1,29 @@
+// functions are technically variables
+add = func (a, b) {
+    //return a+b
+    a+b
+}
+
+sub = func (a, b) {
+    a-b
+}
+
+
+// TODO actually piping
+x = 5
+y = 4
+add 5 4 |> sub 3 |> z
+z |> print
+
+// TODO actually throwing
+// what if our func has issues
+div = func (a, b) {
+    if b == 0 {
+        throw "div by zero"
+    } else {
+        a / b
+    }
+}
+
+// we can run code on error
+div x 0 ?? math.inf

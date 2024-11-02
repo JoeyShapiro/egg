@@ -20,6 +20,8 @@ struct Interpreter {
 // - for start
 // - load from as
 // - 0 < x < 10
+// - double for loop
+// - empty for return, ? for print
 
 impl Interpreter {
     fn new() -> Self {
@@ -63,14 +65,6 @@ impl Interpreter {
         let var_name = inner.next().unwrap().as_str().to_string();
         let value = self.evaluate_expression(inner.next().unwrap());
         self.variables.insert(var_name, value);
-    }
-    
-    fn print_variable(&mut self, identifier: pest::iterators::Pair<Rule>) {
-        let var_name = identifier.as_str();
-        match self.variables.get(var_name) {
-            Some(value) => println!("{} = {}", var_name, value.to_string()),
-            None => println!("{} is not defined", var_name),
-        }
     }
     
     fn interpret_call(&mut self, stmt: pest::iterators::Pair<Rule>) {
@@ -143,6 +137,12 @@ impl Interpreter {
                 }
                 result
             },
+            Rule::function => {
+                let mut parts = expr.into_inner();
+                let params: Vec<String> = parts.next().unwrap().as_str().split_whitespace().map(|s| s.to_string()).collect();
+                let block = parts.next().unwrap().to_string();
+                Value::Function("".to_string(), params, block)
+            }
             _ => Value::String("Error: Unknown expression type".to_string()),
         }
     }
@@ -211,6 +211,7 @@ enum Value {
     String(String),
     Number(i64),
     Array(Vec<Value>),
+    Function(String, Vec<String>, String),
 }
 
 impl std::fmt::Display for Value {
@@ -221,7 +222,10 @@ impl std::fmt::Display for Value {
             Value::Array(arr) => {
                 let elements: Vec<String> = arr.iter().map(|v| v.to_string()).collect();
                 write!(f, "[ {} ]", elements.join(" "))
-            }
+            },
+            Value::Function(name, params, pair) => {
+                write!(f, "Function({})", params.join("\n"))
+            },
         }
     }
 }
