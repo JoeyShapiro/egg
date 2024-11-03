@@ -1,12 +1,13 @@
 program = { SOI ~ statement* ~ EOI }
-statement = { assignment | for_statement | expression }
+statement = { assignment | for_statement | if_statement | expression }
 assignment = { identifier ~ "=" ~ expression }
 call = ${ identifier ~ ( " " ~ ( identifier | expression ) )+ }
 for_statement = { "for" ~ identifier ~ for_mutator ~ expression ~ ("by" ~ expression)? ~ block }
 for_mutator = { "in" | "of" }
+if_statement = { "if" ~ expression ~ block ~ ("else" ~ block)? }
 block = { "{" ~ statement* ~ "}" }
 
-expression = { function | array | string | binary_operation | number | identifier }
+expression = { function | array | string | binary_operation | number | call }
 array = { "[" ~ (expression ~ (expression)*)? ~ "]" }
 binary_operation = { term ~ (binary_operator ~ term)+ }
 term = { call | array | string | number | identifier | "(" ~ expression ~ ")" }

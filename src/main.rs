@@ -22,6 +22,8 @@ struct Interpreter {
 // - 0 < x < 10
 // - double for loop
 // - empty for return, ? for print
+// - allow blocks everywhere (kinda can), and ans is returned
+// - ; is same line, ? is debug print, empty sets ans which is return
 
 impl Interpreter {
     fn new() -> Self {
@@ -47,13 +49,28 @@ impl Interpreter {
         for inner_pair in statement.into_inner() {
             match inner_pair.as_rule() {
                 Rule::assignment => self.interpret_assignment(inner_pair),
-                Rule::call => self.interpret_call(inner_pair),
+                Rule::call => { self.interpret_call(inner_pair); },
                 Rule::for_statement => self.interpret_for_statement(inner_pair),
+                Rule::if_statement => {
+                    let mut inner = inner_pair.into_inner();
+                    let condition = self.evaluate_expression(inner.next().unwrap());
+                    let block_if = inner.next().unwrap();
+                    let block_else = inner.next();
+                    if let Value::Number(n) = condition {
+                        if n != 0 {
+                            self.interpret_block(block_if);
+                        } else {
+                            if let Some(block) = block_else {
+                                self.interpret_block(block);
+                            }
+                        }
+                    }
+                },
                 // Rule::standalone_identifier => self.print_variable(inner_pair),å
                 Rule::expression => {
                     let ans = self.evaluate_expression(inner_pair);
                     self.variables.insert("ans".to_string(), ans.clone());
-                    println!("ans = {}", ans);
+                    println!("ans = {}", ans); // TODO move this for special case
                 }
                 _ => {}
             }
@@ -67,7 +84,7 @@ impl Interpreter {
         self.variables.insert(var_name, value);
     }
     
-    fn interpret_call(&mut self, stmt: pest::iterators::Pair<Rule>) {
+    fn interpret_call(&mut self, stmt: pest::iterators::Pair<Rule>) -> Value {
         let mut inner = stmt.into_inner();
         let func_name = inner.next().unwrap().as_str();
         let expression = inner.next().unwrap();
@@ -77,6 +94,7 @@ impl Interpreter {
             "print" => println!("{}", result),
             _ => println!("Error: Unknown function"),
         }
+        Value::String("".to_string())
     }
     
     fn evaluate_expression(&mut self, expr: pest::iterators::Pair<Rule>) -> Value {
@@ -132,7 +150,11 @@ impl Interpreter {
                         (Value::Number(a), "*", Value::Number(b)) => Value::Number(a * b),
                         (Value::Number(a), "/", Value::Number(b)) => Value::Number(a / b),
                         (Value::Number(a), "**", Value::Number(b)) => Value::Number(a.pow(b as u32)),
-                        _ => Value::String("Error: Invalid operation".to_string()),
+                        (Value::Number(a), "==", Value::Number(b)) => Value::Number((a == b) as i64),
+                        _ => {
+                            println!("Error: Invalid operation {op:?}");
+                            Value::String("Error: Invalid operation".to_string())
+                        },
                     };
                 }
                 result
@@ -142,8 +164,14 @@ impl Interpreter {
                 let params: Vec<String> = parts.next().unwrap().as_str().split_whitespace().map(|s| s.to_string()).collect();
                 let block = parts.next().unwrap().to_string();
                 Value::Function("".to_string(), params, block)
-            }
-            _ => Value::String("Error: Unknown expression type".to_string()),
+            },
+            Rule::call => {
+                self.interpret_call(expr)
+            },
+            _ => {
+                println!("Evaluating: {:?}", expr);
+                Value::String("Error: Unknown expression type".to_string())
+            },
         }
     }
     

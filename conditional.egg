@@ -1,0 +1,25 @@
+// egg needs to supports conditionals
+a = 69
+b = 21
+
+if a == 69 {
+    print "nice"
+}
+
+// you can also do else
+if a == b {
+    print "nope"
+} else {
+    print "yes"
+}
+
+// however, egg does not have elif
+// if you need that many, go to a match statement
+match a {
+    69   : print "nice"
+    420  : { print "every day" }
+    1337 : {
+        print "leet"
+    }
+    _    : print "something else"
+}
