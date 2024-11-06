@@ -66,6 +66,28 @@ impl Interpreter {
                         }
                     }
                 },
+                Rule::which_statement => {
+                    let mut inner = inner_pair.into_inner();
+                    let mut should_break = false;
+                    while !should_break {
+                        let mut expression = inner.next().unwrap().into_inner();
+                        // check if default case
+                        let case = expression.next().unwrap();
+                        let condition = if case.as_rule() == Rule::expression {
+                            self.evaluate_expression(case)
+                        } else {
+                            Value::Number(1)
+                        };
+
+                        let block_if = expression.next().unwrap();
+                        if let Value::Number(n) = condition {
+                            if n != 0 {
+                                should_break = true;
+                                self.interpret_block(block_if);
+                            }
+                        }
+                    }
+                },
                 // Rule::standalone_identifier => self.print_variable(inner_pair),å
                 Rule::expression => {
                     let ans = self.evaluate_expression(inner_pair);
@@ -151,6 +173,8 @@ impl Interpreter {
                         (Value::Number(a), "/", Value::Number(b)) => Value::Number(a / b),
                         (Value::Number(a), "**", Value::Number(b)) => Value::Number(a.pow(b as u32)),
                         (Value::Number(a), "==", Value::Number(b)) => Value::Number((a == b) as i64),
+                        (Value::Number(a), ">=", Value::Number(b)) => Value::Number((a >= b) as i64),
+                        (Value::Number(a), "<=", Value::Number(b)) => Value::Number((a <= b) as i64),
                         _ => {
                             println!("Error: Invalid operation {op:?}");
                             Value::String("Error: Invalid operation".to_string())

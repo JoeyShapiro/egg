@@ -8,18 +8,16 @@ if a == 69 {
 
 // you can also do else
 if a == b {
-    print "nope"
-} else {
     print "yes"
+} else {
+    print "nope"
 }
 
 // however, egg does not have elif
-// if you need that many, go to a match statement
-match a {
-    69   : print "nice"
-    420  : { print "every day" }
-    1337 : {
-        print "leet"
-    }
-    _    : print "something else"
+// if you need that many, go to a check statement
+which {
+    a == b : { print "a == b" }
+    //a >= b : { print "a >= b" }
+    //b <= 0 : { print "b <= 0" }
+    _ : { print "default case" }
 }

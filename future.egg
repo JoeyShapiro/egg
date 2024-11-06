@@ -1,0 +1,17 @@
+// futher optimiztion
+// meant for idents and maybe ops
+//switch a {
+//    >= b : {  }
+//}
+
+// more optimization
+// a match for something or some reason
+// meant for constants
+match a {
+    69   : print "nice"
+    420  : { print "every day" }
+    1337 : {
+        print "leet"
+    }
+    _    : print "something else"
+}
